@@ -20,11 +20,11 @@ const config = {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
+          DEFAULT: '#1F4E79',
           foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
+          DEFAULT: '#F5A623',
           foreground: 'hsl(var(--secondary-foreground))',
         },
         destructive: {
@@ -36,7 +36,7 @@ const config = {
           foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
+          DEFAULT: '#34A853',
           foreground: 'hsl(var(--accent-foreground))',
         },
         popover: {
@@ -47,6 +47,28 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        gray: {
+          100: '#F7F7F7',
+          300: '#D1D1D1',
+          500: '#9B9B9B',
+          700: '#4A4A4A',
+          900: '#1A1A1A',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      fontSize: {
+        'h1': ['2.25rem', { lineHeight: '1.2' }],
+        'h2': ['1.875rem', { lineHeight: '1.2' }],
+        'h3': ['1.5rem', { lineHeight: '1.2' }],
+        'body': ['1rem', { lineHeight: '1.5' }],
+        'caption': ['0.875rem', { lineHeight: '1.4' }],
+      },
+      fontWeight: {
+        regular: '400',
+        medium: '500',
+        bold: '700',
       },
       borderRadius: {
         lg: 'var(--radius)',
