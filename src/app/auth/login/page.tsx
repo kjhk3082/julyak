@@ -37,7 +37,10 @@ export default function LoginPage() {
           title: '로그인 성공',
           description: '환영합니다!',
         });
-        router.push('/dashboard');
+        // Use replace instead of push and add a timeout to ensure state updates
+        setTimeout(() => {
+          router.replace('/dashboard');
+        }, 100);
       }
     } catch (error) {
       toast({
@@ -66,7 +69,10 @@ export default function LoginPage() {
           title: '로그인 성공',
           description: '환영합니다!',
         });
-        router.push('/dashboard');
+        // Use replace instead of push and add a timeout to ensure state updates
+        setTimeout(() => {
+          router.replace('/dashboard');
+        }, 100);
       }
     } catch (error) {
       toast({

@@ -11,7 +11,11 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
+    unoptimized: process.env.NODE_ENV === 'production',
   },
+  // For static export (uncomment if needed)
+  // output: 'export',
+  // trailingSlash: true,
 };
 
 export default nextConfig;

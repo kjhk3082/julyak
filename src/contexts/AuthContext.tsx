@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { User } from 'firebase/auth';
 import { 
   auth, 
@@ -41,6 +42,8 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -51,17 +54,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         
         // Create or update user document in Firestore
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (!userDoc.exists()) {
+            await setDoc(userDocRef, {
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          }
+        } catch (error) {
+          console.error('Error creating/updating user document:', error);
+        }
         
-        if (!userDoc.exists()) {
-          await setDoc(userDocRef, {
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
+        // Auto redirect to dashboard if on auth pages
+        if (pathname === '/auth/login' || pathname === '/auth/signup') {
+          router.replace('/dashboard');
         }
       } else {
         // Remove auth token when user is not authenticated
@@ -75,7 +87,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return unsubscribe;
-  }, []);
+  }, [pathname, router]);
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
