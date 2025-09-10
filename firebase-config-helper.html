@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase 설정 도우미</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #555;
+            margin: 20px 0 15px;
+            font-size: 1.3em;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        .step {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .highlight {
+            background: #ffeaa7;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🔥 Firebase 설정 가이드</h1>
+            
+            <div class="error">
+                <strong>⚠️ 중요:</strong> 제공하신 MongoDB 연결 문자열은 Firebase Firestore가 아닙니다!<br>
+                Firebase Firestore는 MongoDB와 완전히 다른 서비스입니다.
+            </div>
+
+            <div class="info">
+                <strong>📌 현재 상황:</strong><br>
+                - 제공하신 문자열: <code>mongodb://...</code> (MongoDB 형식)<br>
+                - 필요한 것: Firebase 프로젝트 설정 (웹 앱 구성)
+            </div>
+        </div>
+
+        <div class="card">
+            <h1>✅ Firebase Console에서 올바른 설정 가져오기</h1>
+            
+            <div class="step">
+                <h2><span class="step-number">1</span>Firebase Console 접속</h2>
+                <p>브라우저에서 <a href="https://console.firebase.google.com" target="_blank">https://console.firebase.google.com</a> 접속</p>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">2</span>프로젝트 선택</h2>
+                <p>"julyak" 또는 관련 프로젝트 선택</p>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">3</span>프로젝트 설정으로 이동</h2>
+                <p>좌측 상단 ⚙️ 톱니바퀴 → "프로젝트 설정" 클릭</p>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">4</span>웹 앱 설정 확인</h2>
+                <p>"일반" 탭 → 하단 "내 앱" 섹션 → 웹 앱 (<span class="highlight">&lt;/&gt;</span> 아이콘)</p>
+                <p>다음과 같은 형식의 코드가 표시됩니다:</p>
+                
+                <pre class="code-block">const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abc123..."
+};</pre>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">5</span>설정값 복사</h2>
+                <p>위 설정값을 복사하여 아래 `.env.local` 형식으로 변환:</p>
+                
+                <pre class="code-block">NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abc123...</pre>
+            </div>
+        </div>
+
+        <div class="card">
+            <h1>🔧 Firestore Database 설정</h1>
+            
+            <div class="warning">
+                <strong>중요:</strong> Firestore Database가 생성되어 있어야 합니다!
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">1</span>Firestore Database 생성 확인</h2>
+                <p>Firebase Console → "Firestore Database" 클릭</p>
+                <ul style="margin: 10px 0 0 30px;">
+                    <li>"데이터베이스 만들기" 버튼이 보이면 → 데이터베이스 생성 필요</li>
+                    <li>데이터가 보이면 → 이미 생성됨</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">2</span>데이터베이스 생성 (필요한 경우)</h2>
+                <ul style="margin: 10px 0 0 30px;">
+                    <li>"데이터베이스 만들기" 클릭</li>
+                    <li><strong>프로덕션 모드</strong> 선택</li>
+                    <li>위치: <span class="highlight">asia-northeast3</span> (서울) 선택</li>
+                    <li>"사용 설정" 클릭</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">3</span>보안 규칙 설정</h2>
+                <p>Firestore Database → Rules 탭:</p>
+                
+                <pre class="code-block">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 테스트용 임시 규칙 (모든 읽기/쓰기 허용)
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+                <p>"게시" 버튼 클릭</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h1>🔐 Authentication 설정</h1>
+            
+            <div class="step">
+                <h2><span class="step-number">1</span>로그인 방법 활성화</h2>
+                <p>Authentication → Sign-in method:</p>
+                <ul style="margin: 10px 0 0 30px;">
+                    <li>✅ 이메일/비밀번호 사용 설정</li>
+                    <li>✅ Google 사용 설정</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">2</span>승인된 도메인 추가</h2>
+                <p>Authentication → Settings → Authorized domains:</p>
+                <ul style="margin: 10px 0 0 30px;">
+                    <li>localhost (기본)</li>
+                    <li><span class="highlight">julyak.jhlab.ai.kr</span> 추가</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <h2><span class="step-number">3</span>테스트 사용자 생성</h2>
+                <p>Authentication → Users → "사용자 추가":</p>
+                <ul style="margin: 10px 0 0 30px;">
+                    <li>이메일: test@example.com</li>
+                    <li>비밀번호: test123456</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h1>💡 MongoDB vs Firebase Firestore</h1>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <tr style="background: #f5f5f5;">
+                    <th style="padding: 10px; border: 1px solid #ddd;">항목</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">MongoDB</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Firebase Firestore</th>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">연결 방식</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Connection String<br><code>mongodb://...</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">SDK Configuration<br><code>firebaseConfig = {...}</code></td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">인증</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Database 사용자/비밀번호</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Firebase Auth (OAuth, Email 등)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">클라이언트 연결</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">서버 경유 필요</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">직접 연결 가능</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h1>✨ 다음 단계</h1>
+            
+            <div class="success">
+                <strong>Firebase Console에서 올바른 설정값을 가져온 후:</strong>
+                <ol style="margin: 10px 0 0 30px;">
+                    <li><code>.env.local</code> 파일 업데이트</li>
+                    <li>서버 재시작</li>
+                    <li><code>/test-firebase</code> 페이지에서 연결 테스트</li>
+                </ol>
+            </div>
+            
+            <button onclick="copyEnvTemplate()">📋 .env.local 템플릿 복사</button>
+        </div>
+    </div>
+
+    <script>
+        function copyEnvTemplate() {
+            const template = `# Firebase Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY=여기에_API_키_입력
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=여기에_Auth_Domain_입력
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=여기에_Project_ID_입력
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=여기에_Storage_Bucket_입력
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=여기에_Sender_ID_입력
+NEXT_PUBLIC_FIREBASE_APP_ID=여기에_App_ID_입력`;
+            
+            navigator.clipboard.writeText(template).then(() => {
+                alert('템플릿이 클립보드에 복사되었습니다!');
+            });
+        }
+    </script>
+</body>
+</html>
