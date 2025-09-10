@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore, enableNetwork } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getFirestore, enableNetwork, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -18,16 +18,42 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
 
-// Initialize Cloud Firestore and get a reference to the service
-export const db = getFirestore(app);
-
-// Enable network for Firestore to prevent offline issues
+// Set persistence to LOCAL
 if (typeof window !== 'undefined') {
-  enableNetwork(db).catch((err) => {
-    console.log('Firestore network enable error:', err);
+  setPersistence(auth, browserLocalPersistence).catch((error) => {
+    console.error('Auth persistence error:', error);
   });
+}
+
+// Configure Google Provider
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
+// Initialize Cloud Firestore with offline persistence disabled to avoid conflicts
+export const db = typeof window !== 'undefined' 
+  ? initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+      })
+    })
+  : getFirestore(app);
+
+// Force enable network for Firestore
+if (typeof window !== 'undefined' && db) {
+  enableNetwork(db)
+    .then(() => {
+      console.log('Firestore network enabled');
+    })
+    .catch((err) => {
+      console.error('Firestore network enable error:', err);
+      // Try to reconnect after a delay
+      setTimeout(() => {
+        enableNetwork(db).catch(console.error);
+      }, 2000);
+    });
 }
 
 // Initialize Analytics (only in browser)

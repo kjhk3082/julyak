@@ -127,23 +127,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       
-      // Create or update user document in Firestore
-      const userDocRef = doc(db, 'users', result.user.uid);
-      const userDoc = await getDoc(userDocRef);
-      
-      if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-          email: result.user.email,
-          displayName: result.user.displayName,
-          photoURL: result.user.photoURL,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+      // Create or update user document in Firestore with retry logic
+      try {
+        const userDocRef = doc(db, 'users', result.user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (!userDoc.exists()) {
+          await setDoc(userDocRef, {
+            email: result.user.email,
+            displayName: result.user.displayName,
+            photoURL: result.user.photoURL,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+      } catch (firestoreError) {
+        console.error('Firestore error (non-blocking):', firestoreError);
+        // Don't block login even if Firestore fails
       }
       
       return { error: null };
-    } catch (error) {
-      return { error: error as Error };
+    } catch (error: any) {
+      console.error('Google sign in error:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = '구글 로그인에 실패했습니다.';
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = '로그인 창이 닫혔습니다. 다시 시도해주세요.';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = '이미 로그인 창이 열려있습니다.';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = '팝업이 차단되었습니다. 브라우저 설정을 확인해주세요.';
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = '승인되지 않은 도메인입니다. Firebase 콘솔에서 도메인을 추가해주세요.';
+      }
+      
+      return { error: { ...error, message: errorMessage } };
     }
   };
 
