@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GlassCard } from '@/components/ui/glass-card';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Progress } from '@/components/ui/progress';
 import { PlanDisplay } from '@/components/PlanDisplay';
 import { useFirebasePlanService } from '@/hooks/useFirebasePlanService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { Target, CheckCircle, Clock, Map, TrendingUp, Coffee, ShoppingCart, Loader2 } from 'lucide-react';
 
 const missions = [
@@ -43,22 +44,33 @@ const missions = [
 // Remove this line - will be calculated from currentPlan data
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuthGuard();
   const { plans, isLoading, error } = useFirebasePlanService();
   const currentPlan = plans?.[0]; // Get the first active plan
+  
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+  
+  // User is authenticated at this point due to useAuthGuard
 
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* Welcome Section */}
-        <div className="bg-white rounded-lg p-6 shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-          <h1 className="text-h2 font-bold text-gray-900 mb-2">
+        {/* Welcome Section with Glassmorphism */}
+        <GlassCard className="p-8">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
             안녕하세요, {user?.displayName || user?.email?.split('@')[0] || '절약가'}님! 👋
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-lg">
             오늘도 목표 달성을 위해 한 걸음 더 나아가요
           </p>
-        </div>
+        </GlassCard>
 
         {/* Current Plan or Loading */}
         {isLoading ? (
@@ -97,8 +109,8 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        {/* Daily Missions */}
-        <Card>
+        {/* Daily Missions with Glassmorphism */}
+        <GlassCard variant="subtle">
           <CardHeader>
             <CardTitle className="flex items-center">
               <CheckCircle className="w-6 h-6 mr-2 text-accent" />
@@ -164,11 +176,11 @@ export default function DashboardPage() {
               })}
             </div>
           </CardContent>
-        </Card>
+        </GlassCard>
 
-        {/* Quick Actions */}
+        {/* Quick Actions with Glassmorphism */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
+          <GlassCard variant="subtle" hover>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Target className="w-6 h-6 mr-2 text-primary" />
@@ -183,9 +195,9 @@ export default function DashboardPage() {
                 <Link href="/goal">목표 설정하기</Link>
               </Button>
             </CardContent>
-          </Card>
+          </GlassCard>
 
-          <Card>
+          <GlassCard variant="subtle" hover>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Map className="w-6 h-6 mr-2 text-accent" />
@@ -200,7 +212,7 @@ export default function DashboardPage() {
                 <Link href="/map">최저가 맵 보기</Link>
               </Button>
             </CardContent>
-          </Card>
+          </GlassCard>
         </div>
       </div>
     </DashboardLayout>

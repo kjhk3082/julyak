@@ -45,6 +45,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Set auth token in localStorage for client-side auth check
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth-token', user.uid);
+        }
+        
         // Create or update user document in Firestore
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
@@ -57,6 +62,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             createdAt: new Date(),
             updatedAt: new Date(),
           });
+        }
+      } else {
+        // Remove auth token when user is not authenticated
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth-token');
         }
       }
       
@@ -126,6 +136,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth-token');
+    }
     await firebaseSignOut(auth);
   };
 

@@ -51,10 +51,10 @@ export function Sidebar() {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar with Glassmorphism */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:inset-0",
-        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        "fixed inset-y-0 left-0 z-50 w-64 glass border-r border-white/20 transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
@@ -85,10 +85,10 @@ export function Sidebar() {
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                     pathname === item.href
-                      ? "bg-primary text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25"
+                      : "text-gray-700 hover:bg-white/30 hover:backdrop-blur-sm"
                   )}
                 >
                   <Icon className="w-5 h-5 mr-3" />
