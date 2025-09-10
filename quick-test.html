@@ -146,16 +146,20 @@
             enableNetwork
         } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js';
 
-        // Firebase 설정 (제공하신 값)
+        // Firebase 설정 - 환경변수에서 가져와야 함
+        // ⚠️ 보안 경고: API 키를 하드코딩하지 마세요!
         const firebaseConfig = {
-            apiKey: "AIzaSyDgrRbxqGA1f7YMl33QDiIrFVtiVR8TNU4",
-            authDomain: "julyak-1c85a.firebaseapp.com",
-            projectId: "julyak-1c85a",
-            storageBucket: "julyak-1c85a.firebasestorage.app",
-            messagingSenderId: "615709244690",
-            appId: "1:615709244690:web:dc5db09e0897f6183a47cb",
-            measurementId: "G-Z9XX2EK1WC"
+            apiKey: "YOUR_API_KEY",  // .env.local에서 설정
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.firebasestorage.app",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
         };
+        
+        // 실제 사용 시 .env.local 파일의 값을 사용하세요
+        alert('⚠️ Firebase 설정을 .env.local 파일에서 가져와야 합니다. Next.js 앱을 사용하세요.');
 
         // Firebase 초기화
         let app, auth, db;
