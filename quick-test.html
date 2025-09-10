@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase 빠른 테스트</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .info {
+            color: blue;
+        }
+        #log {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success { background: #4caf50; }
+        .status-error { background: #f44336; }
+        .status-loading { background: #ff9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase 빠른 테스트</h1>
+        
+        <div class="test-section">
+            <h2>📊 연결 상태</h2>
+            <div id="status">
+                <p><span class="status-indicator status-loading"></span>초기화 중...</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Firestore 테스트</h2>
+            <button onclick="testFirestore()">Firestore 읽기/쓰기 테스트</button>
+            <button onclick="listCollections()">컬렉션 목록 보기</button>
+        </div>
+
+        <div class="test-section">
+            <h2>🔐 Authentication 테스트</h2>
+            <input type="email" id="email" placeholder="이메일" value="test@example.com">
+            <input type="password" id="password" placeholder="비밀번호" value="test123456">
+            <button onclick="signUp()">회원가입</button>
+            <button onclick="signIn()">로그인</button>
+            <button onclick="signOut()">로그아웃</button>
+            <button onclick="checkAuth()">인증 상태 확인</button>
+            <button onclick="googleSignIn()">Google 로그인</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 로그</h2>
+            <button onclick="clearLog()">로그 지우기</button>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK v9 -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js';
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut as firebaseSignOut,
+            onAuthStateChanged,
+            GoogleAuthProvider,
+            signInWithPopup
+        } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js';
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc, 
+            getDoc,
+            collection,
+            getDocs,
+            enableNetwork
+        } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js';
+
+        // Firebase 설정 (제공하신 값)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDgrRbxqGA1f7YMl33QDiIrFVtiVR8TNU4",
+            authDomain: "julyak-1c85a.firebaseapp.com",
+            projectId: "julyak-1c85a",
+            storageBucket: "julyak-1c85a.firebasestorage.app",
+            messagingSenderId: "615709244690",
+            appId: "1:615709244690:web:dc5db09e0897f6183a47cb",
+            measurementId: "G-Z9XX2EK1WC"
+        };
+
+        // Firebase 초기화
+        let app, auth, db;
+        const logDiv = document.getElementById('log');
+        const statusDiv = document.getElementById('status');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            const colorClass = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            
+            logDiv.innerHTML += `<span class="${colorClass}">[${timestamp}] ${prefix} ${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(message, type = 'loading') {
+            const indicatorClass = type === 'success' ? 'status-success' : 
+                                  type === 'error' ? 'status-error' : 'status-loading';
+            statusDiv.innerHTML = `<p><span class="status-indicator ${indicatorClass}"></span>${message}</p>`;
+        }
+
+        try {
+            log('Firebase 초기화 시작...', 'info');
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            
+            // Firestore 네트워크 활성화
+            await enableNetwork(db);
+            
+            log('Firebase 초기화 성공!', 'success');
+            updateStatus('Firebase 연결됨', 'success');
+
+            // Auth 상태 모니터링
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    log(`사용자 로그인: ${user.email} (UID: ${user.uid})`, 'success');
+                    updateStatus(`로그인됨: ${user.email}`, 'success');
+                } else {
+                    log('사용자 로그아웃 상태', 'info');
+                    updateStatus('로그아웃 상태', 'success');
+                }
+            });
+
+        } catch (error) {
+            log(`초기화 실패: ${error.message}`, 'error');
+            updateStatus('Firebase 연결 실패', 'error');
+        }
+
+        // 전역 함수로 노출
+        window.testFirestore = async function() {
+            log('Firestore 테스트 시작...', 'info');
+            try {
+                // 쓰기 테스트
+                const testRef = doc(db, 'test', 'connection-test');
+                const testData = {
+                    timestamp: new Date().toISOString(),
+                    message: '테스트 성공!',
+                    browser: navigator.userAgent
+                };
+                
+                await setDoc(testRef, testData);
+                log('Firestore 쓰기 성공', 'success');
+                
+                // 읽기 테스트
+                const docSnap = await getDoc(testRef);
+                if (docSnap.exists()) {
+                    log(`Firestore 읽기 성공: ${JSON.stringify(docSnap.data(), null, 2)}`, 'success');
+                } else {
+                    log('문서를 찾을 수 없음', 'error');
+                }
+            } catch (error) {
+                log(`Firestore 테스트 실패: ${error.message}`, 'error');
+            }
+        };
+
+        window.listCollections = async function() {
+            log('컬렉션 목록 조회 중...', 'info');
+            try {
+                // users 컬렉션 조회
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                log(`users 컬렉션: ${usersSnapshot.size}개 문서`, 'info');
+                
+                // test 컬렉션 조회
+                const testSnapshot = await getDocs(collection(db, 'test'));
+                log(`test 컬렉션: ${testSnapshot.size}개 문서`, 'info');
+                
+                // goals 컬렉션 조회
+                const goalsSnapshot = await getDocs(collection(db, 'goals'));
+                log(`goals 컬렉션: ${goalsSnapshot.size}개 문서`, 'info');
+            } catch (error) {
+                log(`컬렉션 조회 실패: ${error.message}`, 'error');
+            }
+        };
+
+        window.signUp = async function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            log(`회원가입 시도: ${email}`, 'info');
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                log(`회원가입 성공: ${userCredential.user.email}`, 'success');
+                
+                // Firestore에 사용자 정보 저장
+                await setDoc(doc(db, 'users', userCredential.user.uid), {
+                    email: userCredential.user.email,
+                    createdAt: new Date().toISOString(),
+                    displayName: email.split('@')[0]
+                });
+                log('사용자 정보 Firestore 저장 완료', 'success');
+            } catch (error) {
+                log(`회원가입 실패: ${error.message}`, 'error');
+            }
+        };
+
+        window.signIn = async function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            log(`로그인 시도: ${email}`, 'info');
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                log(`로그인 성공: ${userCredential.user.email}`, 'success');
+            } catch (error) {
+                log(`로그인 실패: ${error.message}`, 'error');
+            }
+        };
+
+        window.signOut = async function() {
+            log('로그아웃 시도...', 'info');
+            try {
+                await firebaseSignOut(auth);
+                log('로그아웃 성공', 'success');
+            } catch (error) {
+                log(`로그아웃 실패: ${error.message}`, 'error');
+            }
+        };
+
+        window.checkAuth = function() {
+            const user = auth.currentUser;
+            if (user) {
+                log(`현재 로그인 사용자: ${user.email} (UID: ${user.uid})`, 'info');
+            } else {
+                log('로그인된 사용자 없음', 'info');
+            }
+        };
+
+        window.googleSignIn = async function() {
+            log('Google 로그인 시도...', 'info');
+            try {
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                log(`Google 로그인 성공: ${result.user.email}`, 'success');
+                
+                // Firestore에 사용자 정보 저장/업데이트
+                await setDoc(doc(db, 'users', result.user.uid), {
+                    email: result.user.email,
+                    displayName: result.user.displayName,
+                    photoURL: result.user.photoURL,
+                    lastLogin: new Date().toISOString()
+                }, { merge: true });
+                log('Google 사용자 정보 Firestore 저장 완료', 'success');
+            } catch (error) {
+                log(`Google 로그인 실패: ${error.message}`, 'error');
+            }
+        };
+
+        window.clearLog = function() {
+            logDiv.innerHTML = '';
+            log('로그 클리어됨', 'info');
+        };
+    </script>
+</body>
+</html>
