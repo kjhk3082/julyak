@@ -35,11 +35,20 @@ export default function LoginPage() {
       } else {
         toast({
           title: '로그인 성공',
-          description: '환영합니다!',
+          description: '환영합니다! 대시보드로 이동합니다...',
         });
-        // Use replace instead of push and add a timeout to ensure state updates
+        // Force redirect with multiple methods
+        console.log('🚀 Email login successful, redirecting to dashboard...');
         setTimeout(() => {
+          console.log('🔄 Executing redirect...');
           router.replace('/dashboard');
+          // Double-check and force redirect if needed
+          setTimeout(() => {
+            if (window.location.pathname !== '/dashboard') {
+              console.log('⚠️ Router redirect failed, using window.location');
+              window.location.href = '/dashboard';
+            }
+          }, 500);
         }, 100);
       }
     } catch (error) {
@@ -67,11 +76,20 @@ export default function LoginPage() {
       } else {
         toast({
           title: '로그인 성공',
-          description: '환영합니다!',
+          description: '환영합니다! 대시보드로 이동합니다...',
         });
-        // Use replace instead of push and add a timeout to ensure state updates
+        // Force redirect with multiple methods
+        console.log('🚀 Google login successful, redirecting to dashboard...');
         setTimeout(() => {
+          console.log('🔄 Executing redirect...');
           router.replace('/dashboard');
+          // Double-check and force redirect if needed
+          setTimeout(() => {
+            if (window.location.pathname !== '/dashboard') {
+              console.log('⚠️ Router redirect failed, using window.location');
+              window.location.href = '/dashboard';
+            }
+          }, 500);
         }, 100);
       }
     } catch (error) {

@@ -49,16 +49,8 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-// Initialize Cloud Firestore with settings for asia-northeast3
-export const db = typeof window !== 'undefined' 
-  ? initializeFirestore(app, {
-      experimentalForceLongPolling: false,
-      cacheSizeBytes: 40 * 1024 * 1024, // 40 MB
-      localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager()
-      })
-    })
-  : getFirestore(app);
+// Initialize Cloud Firestore - simplified configuration
+export const db = getFirestore(app);
 
 // Connect to emulator in development (optional)
 if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_EMULATOR === 'true') {
@@ -66,19 +58,13 @@ if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_EMULAT
   connectFirestoreEmulator(db, 'localhost', 8080);
 }
 
-// Force enable network for Firestore
-if (typeof window !== 'undefined' && db) {
-  enableNetwork(db)
-    .then(() => {
-      console.log('Firestore network enabled');
-    })
-    .catch((err) => {
-      console.error('Firestore network enable error:', err);
-      // Try to reconnect after a delay
-      setTimeout(() => {
-        enableNetwork(db).catch(console.error);
-      }, 2000);
-    });
+// Debug Firestore connection
+if (typeof window !== 'undefined') {
+  console.log('🔥 Firestore initialization:', {
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    hasDb: !!db
+  });
 }
 
 // Initialize Analytics (only in browser)

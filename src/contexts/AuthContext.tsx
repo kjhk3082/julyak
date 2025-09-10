@@ -73,7 +73,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Auto redirect to dashboard if on auth pages
         if (pathname === '/auth/login' || pathname === '/auth/signup') {
-          router.replace('/dashboard');
+          console.log('🔄 User logged in, redirecting from:', pathname, 'to dashboard');
+          setTimeout(() => {
+            router.replace('/dashboard');
+            // Fallback to window.location if router doesn't work
+            if (typeof window !== 'undefined' && window.location.pathname !== '/dashboard') {
+              console.log('⚠️ Router redirect failed, using window.location');
+              window.location.href = '/dashboard';
+            }
+          }, 500);
         }
       } else {
         // Remove auth token when user is not authenticated
